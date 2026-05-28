@@ -10,12 +10,14 @@ namespace Chess_game_2
 {
     internal class Drawing
     {
+        // Variables
         public static int SquareSize = 120;
         public static int BoardSize = 8;
 
         Color DarkSquare = Color.DarkGreen;
         Color LightSquare = Color.LightSteelBlue;
 
+        // Draws the chessboard with alternating colors.
         public void DrawBoard(Graphics g)
         {
             for (int row = 0; row < BoardSize; row++)
@@ -31,6 +33,7 @@ namespace Chess_game_2
             }
         }
 
+        // Draws the coordinate labels around the board.
         public void DrawCoordinates(Graphics g)
         {
             Font font = new Font("Arial", 12);
@@ -44,6 +47,7 @@ namespace Chess_game_2
             }
         }
 
+        // Highlights the selected piece's square.
         public void DrawSelection(Graphics g, Pieces pieces)
         {
             if (!pieces.IsSelected) return;
@@ -60,6 +64,7 @@ namespace Chess_game_2
             }
         }
 
+        // Displays the current players turn below the board.
         public void DrawTurnIndicator(Graphics g, string currentTurn)
         {
             string text = currentTurn == "white" ? "White's turn" : "Black's turn";
@@ -75,6 +80,7 @@ namespace Chess_game_2
             }
         }
 
+        // Draws the chess pieces on the board using Unicode symbols.
         public void DrawPieces(Graphics g, string[,] positions)
         {
             Dictionary<string, string> symbols = new Dictionary<string, string>()
@@ -100,6 +106,20 @@ namespace Chess_game_2
                         float y = row * SquareSize + 20;
                         g.DrawString(symbol, font, brush, x, y);
                     }
+                }
+            }
+        }
+
+        // Highlights the valid moves for the selected piece.
+        public void DrawValidMoves(Graphics g, List<(int row, int col)> validMoves)
+        {
+            if (validMoves == null) return;
+
+            foreach (var (row, col) in validMoves)
+            {
+                using (SolidBrush brush = new SolidBrush(Color.FromArgb(140, Color.LimeGreen)))
+                {
+                    g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
                 }
             }
         }
