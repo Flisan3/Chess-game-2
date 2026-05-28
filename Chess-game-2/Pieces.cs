@@ -51,15 +51,15 @@ namespace Chess_game_2
             currentTurn = (currentTurn == "white") ? "black" : "white";
         }
 
+        // Moves the pieces
         public void HandleClick(int row, int col)
         {
             // Ignore clicks outside the board
             if (row < 0 || row > 7 || col < 0 || col > 7) return;
 
-            // Get the piece at the clicked position
             string clicked = positions[row, col];
 
-            // If no piece is currently selected, try to select one
+            // If no piece is currently selected, try to select the clicked piece.
             if (!pieceSelected)
             {
                 if (clicked != "" && BelongsToCurrentTurn(clicked))
@@ -72,7 +72,7 @@ namespace Chess_game_2
                 return;
             }
 
-            // If the same piece is clicked again, deselect it
+            // If the clicked square is the currently selected piece, deselect it.
             if (selectedRow == row && selectedCol == col)
             {
                 pieceSelected = false;
@@ -80,7 +80,7 @@ namespace Chess_game_2
                 return;
             }
 
-            // If a different piece is clicked, check if it belongs to the current player and select it
+            // If the clicked piece belongs to the current player, select it instead.
             if (BelongsToCurrentTurn(clicked))
             {
                 selectedRow = row;
@@ -89,9 +89,10 @@ namespace Chess_game_2
                 return;
             }
 
-            // Only move if destination is in valid moves
+            // If the clicked square is a valid move for the selected piece, move it.
             if (validMoves != null && validMoves.Contains((row, col)))
             {
+                // Handle special moves like en passant and castling before moving the piece.
                 string movingPiece = positions[selectedRow, selectedCol];
 
                 enPassant.TryCapture(positions, movingPiece, row, col);
@@ -100,16 +101,15 @@ namespace Chess_game_2
                 positions[row, col] = movingPiece;
                 positions[selectedRow, selectedCol] = "";
 
-                // Notify castling and en passant trackers about the move so they can update their state.
                 castling.NotifyPieceMoved(movingPiece, selectedRow, selectedCol);
                 enPassant.Update(movingPiece, selectedRow, row, col);
 
-                // Check for promotion after the move is made.
                 promotion.CheckAndPromote(positions, row, col);
 
                 pieceSelected = false;
                 validMoves = null;
                 SwitchTurn();
+                currentGameState = gameStateChecker.GetState(positions, currentTurn == "white", enPassant, castling);
             }
         }
 
@@ -120,17 +120,18 @@ namespace Chess_game_2
             if (piece == "") return new List<(int, int)>();
 
             string pieceType = piece.ToLower();
+            List<(int, int)> candidates;
 
-            // Use the appropriate move strategy based on the piece type.
-            if (pieceType == "p") return new PawnMoves(enPassant.Row, enPassant.Col).GetValidMoves(row, col, positions);
-            if (pieceType == "r") return new RookMoves().GetValidMoves(row, col, positions);
-            if (pieceType == "n") return new KnightMoves().GetValidMoves(row, col, positions);
-            if (pieceType == "b") return new BishopMoves().GetValidMoves(row, col, positions);
-            if (pieceType == "q") return new QueenMoves().GetValidMoves(row, col, positions);
-            if (pieceType == "k") return new KingMoves(castling).GetValidMoves(row, col, positions);
+            // Get moves based on piece type, then filter them to ensure they don't put the king in check.
+            if (pieceType == "p") candidates = new PawnMoves(enPassant.Row, enPassant.Col).GetValidMoves(row, col, positions);
+            else if (pieceType == "r") candidates = new RookMoves().GetValidMoves(row, col, positions);
+            else if (pieceType == "n") candidates = new KnightMoves().GetValidMoves(row, col, positions);
+            else if (pieceType == "b") candidates = new BishopMoves().GetValidMoves(row, col, positions);
+            else if (pieceType == "q") candidates = new QueenMoves().GetValidMoves(row, col, positions);
+            else if (pieceType == "k") candidates = new KingMoves(castling).GetValidMoves(row, col, positions);
+            else return new List<(int, int)>();
 
-
-            return new List<(int, int)>();
+            return moveFilter.FilterLegalMoves(row, col, candidates, positions);
         }
 
         // Store valid moves for the currently selected piece to highlight them on the board.
@@ -139,5 +140,9 @@ namespace Chess_game_2
         private EnPassant enPassant = new EnPassant();
         private Castling castling = new Castling();
         private Promotion promotion = new Promotion();
+        private MoveFilter moveFilter = new MoveFilter();
+        private GameStateChecker gameStateChecker = new GameStateChecker();
+        private GameState currentGameState = GameState.Normal;
+        public GameState CurrentGameState => currentGameState;
     }
 }

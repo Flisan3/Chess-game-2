@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace Chess_game_2
 {
@@ -41,7 +40,9 @@ namespace Chess_game_2
                     moves.Add((r, c));
             }
 
-            moves.AddRange(castling.GetCastlingMoves(isWhite, positions));
+            // Add castling moves if available
+            if (castling != null)
+                moves.AddRange(castling.GetCastlingMoves(isWhite, positions));
 
             return moves;
         }

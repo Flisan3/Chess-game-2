@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="BishopMoves.cs" />
     <Compile Include="Castling.cs" />
+    <Compile Include="CheckDetector.cs" />
     <Compile Include="Drawing.cs" />
     <Compile Include="EnPassant.cs" />
     <Compile Include="Form1.cs">
@@ -56,9 +57,11 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="GameStateChecker.cs" />
     <Compile Include="IMoveStrategy.cs" />
     <Compile Include="KingMoves.cs" />
     <Compile Include="KnightMoves.cs" />
+    <Compile Include="MoveFilter.cs" />
     <Compile Include="MoveHelper.cs" />
     <Compile Include="PawnMoves.cs" />
     <Compile Include="Pieces.cs" />

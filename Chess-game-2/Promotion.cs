@@ -9,8 +9,10 @@ namespace Chess_game_2
 {
     internal class Promotion
     {
+        // Check if a pawn has reached the opposite end of the board and promote it to a piece chosen by the player.
         public void CheckAndPromote(string[,] positions, int row, int col)
         {
+            // Check if the piece is a pawn and has reached the promotion rank
             string piece = positions[row, col];
 
             if (piece == "P" && row == 0)
@@ -19,6 +21,7 @@ namespace Chess_game_2
                 positions[row, col] = ShowDialog(false);
         }
 
+        // Dialog to let the player choose what to promote to.
         private string ShowDialog(bool isWhite)
         {
             string[] options = isWhite
@@ -35,6 +38,7 @@ namespace Chess_game_2
             dialog.StartPosition = FormStartPosition.CenterScreen;
 
             int x = 10;
+
             foreach (string option in options)
             {
                 string capture = option;
@@ -48,6 +52,7 @@ namespace Chess_game_2
                 x += 65;
             }
 
+            // Show the dialog and wait for the player to choose an option
             dialog.ShowDialog();
             return result;
         }

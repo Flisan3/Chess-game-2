@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace Chess_game_2
 {
     internal class Castling
     {
+        // Track whether the king and rooks have moved to determine castling rights
         private bool whiteKingMoved = false;
         private bool blackKingMoved = false;
         private bool whiteRookKingsideMoved = false;
@@ -16,6 +16,7 @@ namespace Chess_game_2
         private bool blackRookKingsideMoved = false;
         private bool blackRookQueensideMoved = false;
 
+        // Method to update castling rights
         public void NotifyPieceMoved(string piece, int fromRow, int fromCol)
         {
             if (piece == "K") whiteKingMoved = true;
@@ -26,6 +27,7 @@ namespace Chess_game_2
             if (piece == "r" && fromRow == 0 && fromCol == 0) blackRookQueensideMoved = true;
         }
 
+        // Method to get possible castling moves for the king
         public List<(int row, int col)> GetCastlingMoves(bool isWhite, string[,] positions)
         {
             var moves = new List<(int, int)>();
@@ -59,6 +61,7 @@ namespace Chess_game_2
             return moves;
         }
 
+        // Method to perform the castling move
         public void TryCastle(string[,] positions, string piece, int fromCol, int toRow, int toCol)
         {
             if (piece != "K" && piece != "k") return;

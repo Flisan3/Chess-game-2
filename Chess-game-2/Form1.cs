@@ -19,6 +19,8 @@ namespace Chess_game_2
         public Form1()
         {
             InitializeComponent();
+            //enable double buffering to reduce flickering
+            DoubleBuffered = true;
         }
 
         private void Form1_Load(object sender, EventArgs e)
