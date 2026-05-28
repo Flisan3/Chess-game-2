@@ -9,8 +9,7 @@ namespace Chess_game_2
 {
     internal class Drawing
     {
-        public static GameState CurrentGameState { get; set; }
-
+ 
         // Variables
         public static int SquareSize = 120;
         public static int BoardSize = 8;
