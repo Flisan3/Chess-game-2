@@ -34,12 +34,21 @@ namespace Chess_game_2
             boardDrawer.DrawCoordinates(e.Graphics);
             boardDrawer.DrawSelection(e.Graphics, pieces);
             boardDrawer.DrawValidMoves(e.Graphics, pieces.ValidMoves);
-            boardDrawer.DrawPieces(e.Graphics, pieces.positions);
-            boardDrawer.DrawTurnIndicator(e.Graphics, pieces.CurrentTurn);
+            boardDrawer.DrawPieces(e.Graphics,pieces.positions,pieces.CurrentGameState == GameState.Checkmate,pieces.CurrentGameState == GameState.Stalemate);
+            boardDrawer.DrawTurnIndicator(e.Graphics, pieces.CurrentTurn);        
         }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
+            CheckDetector detector = new CheckDetector();
+            if (pieces.CurrentGameState == GameState.Checkmate || pieces.CurrentGameState == GameState.Stalemate)
+            {
+                // Reset the game if it's over
+                pieces = new Pieces();
+                Invalidate();
+                return;
+            }
+
             // Calculate the clicked row and column based on mouse coordinates
             int col = e.X / 120;
             int row = e.Y / 120;

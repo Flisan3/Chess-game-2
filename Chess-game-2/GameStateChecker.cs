@@ -12,7 +12,7 @@ namespace Chess_game_2
         Normal,
         Check,
         Checkmate,
-        Stalemate
+        Stalemate,
     }
 
     // Class to determine the current game state
@@ -46,6 +46,8 @@ namespace Chess_game_2
                     if (piece == "") continue;
                     bool pieceIsWhite = char.IsUpper(piece[0]);
                     if (pieceIsWhite != isWhiteTurn) continue;
+
+                    bool isCheckedKing = checkDetector.IsInCheck(positions, pieceIsWhite);
 
                     // Get candidate moves based on piece type
                     string pieceType = piece.ToLower();

@@ -9,9 +9,13 @@ namespace Chess_game_2
 {
     internal class Drawing
     {
+        public static GameState CurrentGameState { get; set; }
+
         // Variables
         public static int SquareSize = 120;
         public static int BoardSize = 8;
+
+        public bool currentTurnIsWhite = true;
 
         Color DarkSquare = Color.DarkGreen;
         Color LightSquare = Color.LightSteelBlue;
@@ -68,6 +72,7 @@ namespace Chess_game_2
         {
             string text = currentTurn == "white" ? "White's turn" : "Black's turn";
             Color color = currentTurn == "white" ? Color.White : Color.Black;
+            currentTurnIsWhite = currentTurn == "white" ? true : false;
 
             using (Font font = new Font("Arial", 14, FontStyle.Bold))
             using (SolidBrush bg = new SolidBrush(Color.FromArgb(180, Color.Gray)))
@@ -80,7 +85,7 @@ namespace Chess_game_2
         }
 
         // Draws the chess pieces on the board using Unicode symbols.
-        public void DrawPieces(Graphics g, string[,] positions)
+        public void DrawPieces(Graphics g, string[,] positions, bool isCheckmate, bool isStalemate)
         {
             Dictionary<string, string> symbols = new Dictionary<string, string>()
             {
@@ -91,6 +96,7 @@ namespace Chess_game_2
             };
 
             Font font = new Font("Segoe UI Symbol", 48);
+            Font specialFont = new Font("Arial", 48, FontStyle.Bold);
 
             for (int row = 0; row < BoardSize; row++)
             {
@@ -101,9 +107,25 @@ namespace Chess_game_2
                     {
                         string symbol = symbols[piece];
                         Brush brush = char.IsUpper(piece[0]) ? Brushes.White : Brushes.Black;
+                        Brush mateBrush = Brushes.Red;
                         float x = col * SquareSize + 25;
                         float y = row * SquareSize + 20;
-                        g.DrawString(symbol, font, brush, x, y);
+
+                        bool isKing = piece == "K" || piece == "k";
+                        bool isCheckmatedKing = (piece == "K" && !currentTurnIsWhite) || (piece == "k" && currentTurnIsWhite);
+
+                        if (isCheckmate && isCheckmatedKing)
+                        {
+                            g.DrawString("#", specialFont, mateBrush, x, y);
+                        }
+                        else if (isKing && isStalemate)
+                        {
+                            g.DrawString("½", specialFont, mateBrush, x, y);
+                        }
+                        else
+                        {
+                            g.DrawString(symbols[piece], font, brush, x, y);
+                        }
                     }
                 }
             }
@@ -119,31 +141,6 @@ namespace Chess_game_2
                 using (SolidBrush brush = new SolidBrush(Color.FromArgb(140, Color.LimeGreen)))
                 {
                     g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
-                }
-            }
-        }
-
-        public void DrawGameState(Graphics g, GameState state, string[,] positions, string currentTurn)
-        {
-            if (state == GameState.Check || state == GameState.Checkmate)
-            {
-                string kingSymbol = currentTurn == "white" ? "K" : "k";
-                for (int r = 0; r < 8; r++)
-                    for (int c = 0; c < 8; c++)
-                        if (positions[r, c] == kingSymbol)
-                            using (SolidBrush brush = new SolidBrush(Color.FromArgb(160, Color.Red)))
-                                g.FillRectangle(brush, c * SquareSize, r * SquareSize, SquareSize, SquareSize);
-            }
-
-            if (state == GameState.Checkmate || state == GameState.Stalemate)
-            {
-                string message = state == GameState.Checkmate ? "Checkmate!" : "Stalemate!";
-                using (Font font = new Font("Arial", 36, FontStyle.Bold))
-                using (SolidBrush bg = new SolidBrush(Color.FromArgb(180, Color.Black)))
-                using (SolidBrush fg = new SolidBrush(Color.White))
-                {
-                    g.FillRectangle(bg, 100, 300, 760, 100);
-                    g.DrawString(message, font, fg, 200, 320);
                 }
             }
         }
