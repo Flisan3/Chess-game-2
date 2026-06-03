@@ -36,6 +36,8 @@ namespace Chess_game_2
 
         private bool IsWhitePiece(string piece) => piece != "" && char.IsUpper(piece[0]);
         private bool IsBlackPiece(string piece) => piece != "" && char.IsLower(piece[0]);
+        public bool WhiteKingInCheck => currentGameState == GameState.Check && currentTurn == "white";
+        public bool BlackKingInCheck => currentGameState == GameState.Check && currentTurn == "black";
 
         // Checks if the piece belongs to the player whose turn it is.
         private bool BelongsToCurrentTurn(string piece)

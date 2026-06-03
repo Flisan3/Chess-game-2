@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Chess_game_2
 {
@@ -12,13 +13,27 @@ namespace Chess_game_2
         public static GameState CurrentGameState { get; set; }
 
         // Variables
-        public static int SquareSize = 120;
         public static int BoardSize = 8;
+        public static int SquareSize { get; private set; } = 80;
 
         public bool currentTurnIsWhite = true;
 
         Color DarkSquare = Color.DarkGreen;
         Color LightSquare = Color.LightSteelBlue;
+
+        public static void RecalculateSquareSize(int availableHeight, int availableWidth)
+        {
+            int margin = 20;
+            int maxByHeight = (availableHeight - margin) / BoardSize;
+            int maxByWidth = (availableWidth - margin) / BoardSize;
+            SquareSize = Math.Max(40, Math.Min(maxByHeight, maxByWidth));
+        }
+
+        public static void RecalculateSquareSizeFromScreen()
+        {
+            var screen = Screen.PrimaryScreen.WorkingArea;
+            RecalculateSquareSize(screen.Height, screen.Width);
+        }
 
         // Draws the chessboard with alternating colors.
         public void DrawBoard(Graphics g)
@@ -39,14 +54,17 @@ namespace Chess_game_2
         // Draws the coordinate labels around the board.
         public void DrawCoordinates(Graphics g)
         {
-            Font font = new Font("Arial", 12);
-            Brush brush = Brushes.Black;
-            for (int i = 0; i < BoardSize; i++)
+            float fontSize = Math.Max(8, SquareSize / 10f);
+            using (Font font = new Font("Arial", fontSize))
             {
-                string colLabel = ((char)('A' + i)).ToString();
-                g.DrawString(colLabel, font, brush, i * SquareSize + SquareSize / 2 - 10, BoardSize * SquareSize);
-                string rowLabel = (BoardSize - i).ToString();
-                g.DrawString(rowLabel, font, brush, BoardSize * SquareSize, i * SquareSize + SquareSize / 2 - 10);
+                Brush brush = Brushes.Black;
+                for (int i = 0; i < BoardSize; i++)
+                {
+                    string colLabel = ((char)('A' + i)).ToString();
+                    g.DrawString(colLabel, font, brush, i * SquareSize + SquareSize / 2f - fontSize, BoardSize * SquareSize);
+                    string rowLabel = (BoardSize - i).ToString();
+                    g.DrawString(rowLabel, font, brush, BoardSize * SquareSize, i * SquareSize + SquareSize / 2f - fontSize);
+                }
             }
         }
 
@@ -67,6 +85,27 @@ namespace Chess_game_2
             }
         }
 
+        // Highlights the king's square in red when in check.
+        public void DrawCheck(Graphics g, string[,] positions, bool whiteKingInCheck, bool blackKingInCheck)
+        {
+            if (!whiteKingInCheck && !blackKingInCheck) return;
+
+            using (SolidBrush brush = new SolidBrush(Color.FromArgb(160, Color.Red)))
+            {
+                for (int row = 0; row < BoardSize; row++)
+                {
+                    for (int col = 0; col < BoardSize; col++)
+                    {
+                        string piece = positions[row, col];
+                        if (piece == "K" && whiteKingInCheck)
+                            g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
+                        else if (piece == "k" && blackKingInCheck)
+                            g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
+                    }
+                }
+            }
+        }
+
         // Displays the current players turn below the board.
         public void DrawTurnIndicator(Graphics g, string currentTurn)
         {
@@ -74,12 +113,13 @@ namespace Chess_game_2
             Color color = currentTurn == "white" ? Color.White : Color.Black;
             currentTurnIsWhite = currentTurn == "white" ? true : false;
 
-            using (Font font = new Font("Arial", 14, FontStyle.Bold))
+            float fontSize = Math.Max(10, SquareSize / 8f);
+            using (Font font = new Font("Arial", fontSize, FontStyle.Bold))
             using (SolidBrush bg = new SolidBrush(Color.FromArgb(180, Color.Gray)))
             using (SolidBrush fg = new SolidBrush(color))
             {
-                int y = BoardSize * SquareSize + 30;
-                g.FillRectangle(bg, 10, y - 4, 200, 30);
+                int y = BoardSize * SquareSize + 10;
+                g.FillRectangle(bg, 10, y - 4, 200, fontSize + 10);
                 g.DrawString(text, font, fg, 15, y);
             }
         }
@@ -95,36 +135,55 @@ namespace Chess_game_2
                 { "b", "♝" }, { "n", "♞" }, { "p", "♟" }
             };
 
-            Font font = new Font("Segoe UI Symbol", 48);
-            Font specialFont = new Font("Arial", 48, FontStyle.Bold);
+            float pieceSize = Math.Max(16, SquareSize * 0.6f);
+            float nudgeX = SquareSize * 0.04f;
+            float nudgeY = SquareSize * 0.04f;
 
-            for (int row = 0; row < BoardSize; row++)
+            using (Font font = new Font("Segoe UI Symbol", pieceSize))
+            using (Font specialFont = new Font("Arial", pieceSize, FontStyle.Bold))
             {
-                for (int col = 0; col < BoardSize; col++)
+                for (int row = 0; row < BoardSize; row++)
                 {
-                    string piece = positions[row, col];
-                    if (!string.IsNullOrEmpty(piece))
+                    for (int col = 0; col < BoardSize; col++)
                     {
-                        string symbol = symbols[piece];
-                        Brush brush = char.IsUpper(piece[0]) ? Brushes.White : Brushes.Black;
-                        Brush mateBrush = Brushes.Red;
-                        float x = col * SquareSize + 25;
-                        float y = row * SquareSize + 20;
+                        string piece = positions[row, col];
+                        if (!string.IsNullOrEmpty(piece))
+                        {
+                            Brush brush = char.IsUpper(piece[0]) ? Brushes.White : Brushes.Black;
+                            Brush mateBrush = Brushes.Red;
 
-                        bool isKing = piece == "K" || piece == "k";
-                        bool isCheckmatedKing = (piece == "K" && !currentTurnIsWhite) || (piece == "k" && currentTurnIsWhite);
+                            bool isKing = piece == "K" || piece == "k";
+                            bool isCheckmatedKing = (piece == "K" && !currentTurnIsWhite) || (piece == "k" && currentTurnIsWhite);
 
-                        if (isCheckmate && isCheckmatedKing)
-                        {
-                            g.DrawString("#", specialFont, mateBrush, x, y);
-                        }
-                        else if (isKing && isStalemate)
-                        {
-                            g.DrawString("½", specialFont, mateBrush, x, y);
-                        }
-                        else
-                        {
-                            g.DrawString(symbols[piece], font, brush, x, y);
+                            string drawSymbol;
+                            Font drawFont;
+                            Brush drawBrush;
+
+                            if (isCheckmate && isCheckmatedKing)
+                            {
+                                drawSymbol = "#";
+                                drawFont = specialFont;
+                                drawBrush = mateBrush;
+                            }
+                            else if (isKing && isStalemate)
+                            {
+                                drawSymbol = "½";
+                                drawFont = specialFont;
+                                drawBrush = mateBrush;
+                            }
+                            else
+                            {
+                                drawSymbol = symbols[piece];
+                                drawFont = font;
+                                drawBrush = brush;
+                            }
+
+                            // Measure the symbol and center it within the square, with a small nudge
+                            SizeF size = g.MeasureString(drawSymbol, drawFont);
+                            float x = col * SquareSize + (SquareSize - size.Width) / 2f + nudgeX;
+                            float y = row * SquareSize + (SquareSize - size.Height) / 2f + nudgeY;
+
+                            g.DrawString(drawSymbol, drawFont, drawBrush, x, y);
                         }
                     }
                 }
