@@ -76,7 +76,7 @@ namespace Chess_game_2
                 }
             }
 
-    return moves;
+            return moves;
         }
 
         // Method to move the rook
