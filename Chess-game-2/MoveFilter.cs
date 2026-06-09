@@ -11,7 +11,7 @@ namespace Chess_game_2
         // Reuse the check detector
         private CheckDetector checkDetector = new CheckDetector();
 
-        // Filters candidate moves to ensure they don't leave the king in check.
+        // Filters candidate moves to ensure they dont leave the king in check.
         public List<(int row, int col)> FilterLegalMoves(
             int fromRow, int fromCol,
             List<(int row, int col)> candidates,
@@ -44,7 +44,7 @@ namespace Chess_game_2
                     if (checkDetector.IsInCheck(passCopy, isWhite)) continue;
                 }
 
-                // Simulate the move and check if king is still in check
+                // Simulate the move and check if king is in check
                 string[,] copy = CopyBoard(positions);
                 copy[toRow, toCol] = copy[fromRow, fromCol];
                 copy[fromRow, fromCol] = "";

@@ -61,7 +61,7 @@ namespace Chess_game_2
             return moves;
         }
 
-        // Method to perform the castling move
+        // Method to move the rook
         public void TryCastle(string[,] positions, string piece, int fromCol, int toRow, int toCol)
         {
             if (piece != "K" && piece != "k") return;

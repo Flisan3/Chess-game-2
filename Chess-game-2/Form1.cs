@@ -73,9 +73,6 @@ namespace Chess_game_2
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Escape)
-                this.Close();
-            base.OnKeyDown(e);
         }
 
         private void flipCheckBox_CheckedChanged_1(object sender, EventArgs e)

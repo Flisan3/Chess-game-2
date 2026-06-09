@@ -18,7 +18,7 @@ namespace Chess_game_2
 
         public bool CurrentTurnIsWhite { get; set; } = true;
 
-        // Board flip state — set this from Form1 via the flipCheckBox toggle.
+        // Board flip state
         public bool FlipBoardEnabled { get; set; } = false;
 
         Color DarkSquare = Color.DarkGreen;
@@ -38,7 +38,7 @@ namespace Chess_game_2
             RecalculateSquareSize(screen.Height, screen.Width);
         }
 
-        // Returns whether the board should currently be rendered flipped (black's perspective).
+        // Returns whether the board should currently be rendered flipped
         private bool IsFlipped => FlipBoardEnabled && !CurrentTurnIsWhite;
 
         // Converts a logical board row/col to a screen row/col.
@@ -162,6 +162,7 @@ namespace Chess_game_2
             using (Font font = new Font("Segoe UI Symbol", pieceSize))
             using (Font specialFont = new Font("Arial", pieceSize, FontStyle.Bold))
             {
+                // Loops through the entire array and draws the symbols.
                 for (int row = 0; row < BoardSize; row++)
                 {
                     for (int col = 0; col < BoardSize; col++)
