@@ -16,7 +16,10 @@ namespace Chess_game_2
         public static int BoardSize = 8;
         public static int SquareSize { get; private set; } = 80;
 
-        public bool currentTurnIsWhite = true;
+        public bool CurrentTurnIsWhite { get; set; } = true;
+
+        // Board flip state — set this from Form1 via the flipCheckBox toggle.
+        public bool FlipBoardEnabled { get; set; } = false;
 
         Color DarkSquare = Color.DarkGreen;
         Color LightSquare = Color.LightSteelBlue;
@@ -24,8 +27,8 @@ namespace Chess_game_2
         public static void RecalculateSquareSize(int availableHeight, int availableWidth)
         {
             int margin = 20;
-            int maxByHeight = (availableHeight - margin) / BoardSize;
-            int maxByWidth = (availableWidth - margin) / BoardSize;
+            int maxByHeight = (availableHeight - margin - 50) / BoardSize;
+            int maxByWidth = (availableWidth - margin - 50) / BoardSize;
             SquareSize = Math.Max(40, Math.Min(maxByHeight, maxByWidth));
         }
 
@@ -35,6 +38,17 @@ namespace Chess_game_2
             RecalculateSquareSize(screen.Height, screen.Width);
         }
 
+        // Returns whether the board should currently be rendered flipped (black's perspective).
+        private bool IsFlipped => FlipBoardEnabled && !CurrentTurnIsWhite;
+
+        // Converts a logical board row/col to a screen row/col.
+        private int ToScreenRow(int logicalRow) => IsFlipped ? (BoardSize - 1 - logicalRow) : logicalRow;
+        private int ToScreenCol(int logicalCol) => IsFlipped ? (BoardSize - 1 - logicalCol) : logicalCol;
+
+        // Converts a screen pixel position back to a logical board row/col.
+        public int ToLogicalRow(int screenRow) => IsFlipped ? (BoardSize - 1 - screenRow) : screenRow;
+        public int ToLogicalCol(int screenCol) => IsFlipped ? (BoardSize - 1 - screenCol) : screenCol;
+
         // Draws the chessboard with alternating colors.
         public void DrawBoard(Graphics g)
         {
@@ -43,9 +57,11 @@ namespace Chess_game_2
                 for (int col = 0; col < BoardSize; col++)
                 {
                     Color squareColor = ((row + col) % 2 == 0) ? LightSquare : DarkSquare;
+                    int screenRow = ToScreenRow(row);
+                    int screenCol = ToScreenCol(col);
                     using (SolidBrush brush = new SolidBrush(squareColor))
                     {
-                        g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
+                        g.FillRectangle(brush, screenCol * SquareSize, screenRow * SquareSize, SquareSize, SquareSize);
                     }
                 }
             }
@@ -60,9 +76,14 @@ namespace Chess_game_2
                 Brush brush = Brushes.Black;
                 for (int i = 0; i < BoardSize; i++)
                 {
-                    string colLabel = ((char)('A' + i)).ToString();
+                    // File labels (A-H): flip horizontally when board is flipped
+                    int fileIndex = IsFlipped ? (BoardSize - 1 - i) : i;
+                    string colLabel = ((char)('A' + fileIndex)).ToString();
                     g.DrawString(colLabel, font, brush, i * SquareSize + SquareSize / 2f - fontSize, BoardSize * SquareSize);
-                    string rowLabel = (BoardSize - i).ToString();
+
+                    // Rank labels (1-8): flip vertically when board is flipped
+                    int rankNumber = IsFlipped ? (i + 1) : (BoardSize - i);
+                    string rowLabel = rankNumber.ToString();
                     g.DrawString(rowLabel, font, brush, BoardSize * SquareSize, i * SquareSize + SquareSize / 2f - fontSize);
                 }
             }
@@ -73,15 +94,12 @@ namespace Chess_game_2
         {
             if (!pieces.IsSelected) return;
 
+            int screenRow = ToScreenRow(pieces.SelectedRow);
+            int screenCol = ToScreenCol(pieces.SelectedCol);
+
             using (SolidBrush brush = new SolidBrush(Color.FromArgb(120, Color.Yellow)))
             {
-                g.FillRectangle(
-                    brush,
-                    pieces.SelectedCol * SquareSize,
-                    pieces.SelectedRow * SquareSize,
-                    SquareSize,
-                    SquareSize
-                );
+                g.FillRectangle(brush, screenCol * SquareSize, screenRow * SquareSize, SquareSize, SquareSize);
             }
         }
 
@@ -97,21 +115,23 @@ namespace Chess_game_2
                     for (int col = 0; col < BoardSize; col++)
                     {
                         string piece = positions[row, col];
-                        if (piece == "K" && whiteKingInCheck)
-                            g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
-                        else if (piece == "k" && blackKingInCheck)
-                            g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
+                        if ((piece == "K" && whiteKingInCheck) || (piece == "k" && blackKingInCheck))
+                        {
+                            int screenRow = ToScreenRow(row);
+                            int screenCol = ToScreenCol(col);
+                            g.FillRectangle(brush, screenCol * SquareSize, screenRow * SquareSize, SquareSize, SquareSize);
+                        }
                     }
                 }
             }
         }
 
-        // Displays the current players turn below the board.
+        // Displays the current player's turn below the board.
         public void DrawTurnIndicator(Graphics g, string currentTurn)
         {
             string text = currentTurn == "white" ? "White's turn" : "Black's turn";
             Color color = currentTurn == "white" ? Color.White : Color.Black;
-            currentTurnIsWhite = currentTurn == "white" ? true : false;
+            CurrentTurnIsWhite = currentTurn == "white";
 
             float fontSize = Math.Max(10, SquareSize / 8f);
             using (Font font = new Font("Arial", fontSize, FontStyle.Bold))
@@ -119,8 +139,8 @@ namespace Chess_game_2
             using (SolidBrush fg = new SolidBrush(color))
             {
                 int y = BoardSize * SquareSize + 10;
-                g.FillRectangle(bg, 10, y - 4, 200, fontSize + 10);
-                g.DrawString(text, font, fg, 15, y);
+                g.FillRectangle(bg, 10, y + 10, 200, fontSize + 10);
+                g.DrawString(text, font, fg, 15, y + 10);
             }
         }
 
@@ -153,7 +173,7 @@ namespace Chess_game_2
                             Brush mateBrush = Brushes.Red;
 
                             bool isKing = piece == "K" || piece == "k";
-                            bool isCheckmatedKing = (piece == "K" && !currentTurnIsWhite) || (piece == "k" && currentTurnIsWhite);
+                            bool isCheckmatedKing = (piece == "K" && CurrentTurnIsWhite) || (piece == "k" && !CurrentTurnIsWhite);
 
                             string drawSymbol;
                             Font drawFont;
@@ -178,10 +198,12 @@ namespace Chess_game_2
                                 drawBrush = brush;
                             }
 
-                            // Measure the symbol and center it within the square, with a small nudge
+                            int screenRow = ToScreenRow(row);
+                            int screenCol = ToScreenCol(col);
+
                             SizeF size = g.MeasureString(drawSymbol, drawFont);
-                            float x = col * SquareSize + (SquareSize - size.Width) / 2f + nudgeX;
-                            float y = row * SquareSize + (SquareSize - size.Height) / 2f + nudgeY;
+                            float x = screenCol * SquareSize + (SquareSize - size.Width) / 2f + nudgeX;
+                            float y = screenRow * SquareSize + (SquareSize - size.Height) / 2f + nudgeY;
 
                             g.DrawString(drawSymbol, drawFont, drawBrush, x, y);
                         }
@@ -197,9 +219,11 @@ namespace Chess_game_2
 
             foreach (var (row, col) in validMoves)
             {
+                int screenRow = ToScreenRow(row);
+                int screenCol = ToScreenCol(col);
                 using (SolidBrush brush = new SolidBrush(Color.FromArgb(140, Color.LimeGreen)))
                 {
-                    g.FillRectangle(brush, col * SquareSize, row * SquareSize, SquareSize, SquareSize);
+                    g.FillRectangle(brush, screenCol * SquareSize, screenRow * SquareSize, SquareSize, SquareSize);
                 }
             }
         }

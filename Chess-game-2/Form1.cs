@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 namespace Chess_game_2
 {
     public partial class Form1 : Form
@@ -14,25 +15,31 @@ namespace Chess_game_2
         // Main game state and drawing logic
         Pieces pieces = new Pieces();
         Drawing boardDrawer = new Drawing();
+
         public Form1()
         {
             InitializeComponent();
-            //enable double buffering to reduce flickering
+            // Enable double buffering to reduce flickering
             DoubleBuffered = true;
         }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             this.WindowState = FormWindowState.Maximized;
             Drawing.RecalculateSquareSize(ClientSize.Height, ClientSize.Width);
         }
+
         private void Form1_Resize(object sender, EventArgs e)
         {
             Drawing.RecalculateSquareSize(ClientSize.Height, ClientSize.Width);
             Invalidate();
         }
+
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            // Draw the board and pieces
+            // Sync turn state before any drawing so IsFlipped is correct
+            boardDrawer.CurrentTurnIsWhite = pieces.CurrentTurn == "white";
+
             boardDrawer.DrawBoard(e.Graphics);
             boardDrawer.DrawCoordinates(e.Graphics);
             boardDrawer.DrawSelection(e.Graphics, pieces);
@@ -41,27 +48,40 @@ namespace Chess_game_2
             boardDrawer.DrawPieces(e.Graphics, pieces.positions, pieces.CurrentGameState == GameState.Checkmate, pieces.CurrentGameState == GameState.Stalemate);
             boardDrawer.DrawTurnIndicator(e.Graphics, pieces.CurrentTurn);
         }
-        private void Form1_MouseDown(object sender, MouseEventArgs e)
+
+        private async void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            CheckDetector detector = new CheckDetector();
-            if (pieces.CurrentGameState == GameState.Checkmate || pieces.CurrentGameState == GameState.Stalemate)
+            // Calculate the clicked row and column based on mouse coordinates,
+            // Then convert from screen coords to logical board coords
+            int screenCol = e.X / Drawing.SquareSize;
+            int screenRow = e.Y / Drawing.SquareSize;
+            int logicalRow = boardDrawer.ToLogicalRow(screenRow);
+            int logicalCol = boardDrawer.ToLogicalCol(screenCol);
+
+            //Reset the game if its over
+            if (pieces.CurrentGameState == GameState.Checkmate ||
+                   pieces.CurrentGameState == GameState.Stalemate)
             {
-                // Reset the game if it's over
                 pieces = new Pieces();
                 Invalidate();
                 return;
             }
-            // Calculate the clicked row and column based on mouse coordinates
-            int col = e.X / Drawing.SquareSize;
-            int row = e.Y / Drawing.SquareSize;
-            pieces.HandleClick(row, col);
+            //Handle clicking and redraw the board
+            pieces.HandleClick(logicalRow, logicalCol);
             Invalidate();
         }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape)
                 this.Close();
             base.OnKeyDown(e);
+        }
+
+        private void flipCheckBox_CheckedChanged_1(object sender, EventArgs e)
+        {
+            boardDrawer.FlipBoardEnabled = flipCheckBox.Checked;
+            Invalidate();
         }
     }
 }
