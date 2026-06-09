@@ -34,31 +34,49 @@ namespace Chess_game_2
 
             if (isWhite && !whiteKingMoved)
             {
-                // Kingside
+                // White kingside
                 if (!whiteRookKingsideMoved &&
-                    positions[7, 5] == "" && positions[7, 6] == "")
+                    positions[7, 7] == "R" &&
+                    positions[7, 5] == "" &&
+                    positions[7, 6] == "")
+                {
                     moves.Add((7, 6));
+                }
 
-                // Queenside
+                // White queenside
                 if (!whiteRookQueensideMoved &&
-                    positions[7, 3] == "" && positions[7, 2] == "" && positions[7, 1] == "")
+                    positions[7, 0] == "R" &&
+                    positions[7, 3] == "" &&
+                    positions[7, 2] == "" &&
+                    positions[7, 1] == "")
+                {
                     moves.Add((7, 2));
+                }
             }
 
             if (!isWhite && !blackKingMoved)
             {
-                // Kingside
+                // Black kingside
                 if (!blackRookKingsideMoved &&
-                    positions[0, 5] == "" && positions[0, 6] == "")
+                    positions[0, 7] == "r" && 
+                    positions[0, 5] == "" &&
+                    positions[0, 6] == "")
+                {
                     moves.Add((0, 6));
+                }
 
-                // Queenside
+                // Black queenside
                 if (!blackRookQueensideMoved &&
-                    positions[0, 3] == "" && positions[0, 2] == "" && positions[0, 1] == "")
+                    positions[0, 0] == "r" &&
+                    positions[0, 3] == "" &&
+                    positions[0, 2] == "" &&
+                    positions[0, 1] == "")
+                {
                     moves.Add((0, 2));
+                }
             }
 
-            return moves;
+    return moves;
         }
 
         // Method to move the rook

@@ -47,8 +47,6 @@ namespace Chess_game_2
                     bool pieceIsWhite = char.IsUpper(piece[0]);
                     if (pieceIsWhite != isWhiteTurn) continue;
 
-                    bool isCheckedKing = checkDetector.IsInCheck(positions, pieceIsWhite);
-
                     // Get candidate moves based on piece type
                     string pieceType = piece.ToLower();
                     List<(int, int)> candidates;

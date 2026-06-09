@@ -71,10 +71,6 @@ namespace Chess_game_2
             Invalidate();
         }
 
-        protected override void OnKeyDown(KeyEventArgs e)
-        {
-        }
-
         private void flipCheckBox_CheckedChanged_1(object sender, EventArgs e)
         {
             boardDrawer.FlipBoardEnabled = flipCheckBox.Checked;

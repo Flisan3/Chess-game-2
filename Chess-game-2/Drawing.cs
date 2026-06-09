@@ -10,8 +10,6 @@ namespace Chess_game_2
 {
     internal class Drawing
     {
-        public static GameState CurrentGameState { get; set; }
-
         // Variables
         public static int BoardSize = 8;
         public static int SquareSize { get; private set; } = 80;
@@ -30,12 +28,6 @@ namespace Chess_game_2
             int maxByHeight = (availableHeight - margin - 50) / BoardSize;
             int maxByWidth = (availableWidth - margin - 50) / BoardSize;
             SquareSize = Math.Max(40, Math.Min(maxByHeight, maxByWidth));
-        }
-
-        public static void RecalculateSquareSizeFromScreen()
-        {
-            var screen = Screen.PrimaryScreen.WorkingArea;
-            RecalculateSquareSize(screen.Height, screen.Width);
         }
 
         // Returns whether the board should currently be rendered flipped

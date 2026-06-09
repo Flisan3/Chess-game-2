@@ -38,8 +38,6 @@ namespace Chess_game_2
                     int passThroughCol = fromCol + (toCol > fromCol ? 1 : -1);
 
                     string[,] passCopy = CopyBoard(positions);
-                    passCopy[fromRow, passThroughCol] = passCopy[fromRow, fromCol];
-                    passCopy[fromRow, fromCol] = "";
 
                     if (checkDetector.IsInCheck(passCopy, isWhite)) continue;
                 }
